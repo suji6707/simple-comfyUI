@@ -70,7 +70,7 @@ class GenerationResult(Base):
     job_id = Column(UUID(as_uuid=True), ForeignKey("generation_jobs.job_id"), nullable=False)
     image_url = Column(String(500), nullable=False)
     thumbnail_url = Column(String(500))
-    metadata = Column(JSON, default=dict)
+    result_metadata = Column(JSON, default=dict)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

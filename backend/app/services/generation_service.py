@@ -12,7 +12,7 @@ from app.models.schemas import (
     GenerationResult
 )
 from app.services.template_service import TemplateService
-from app.workers.celery_worker import generate_image
+from app.core.config import celery_app
 
 logger = structlog.get_logger()
 
@@ -51,11 +51,15 @@ class GenerationService:
         self.db.refresh(db_job)
         
         # Submit to Celery queue
-        task = generate_image.delay(
-            job_id=str(db_job.job_id),
-            template_config=template.workflow_config,
-            prompt=request_data.prompt,
-            parameters=request_data.parameters
+        task = celery_app.send_task(
+            'app.workers.celery_worker.generate_image',
+            args=[],
+            kwargs={
+                'job_id': str(db_job.job_id),
+                'template_config': template.workflow_config,
+                'prompt': request_data.prompt,
+                'parameters': request_data.parameters
+            }
         )
         
         logger.info(

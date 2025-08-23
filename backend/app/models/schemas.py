@@ -131,7 +131,7 @@ class SSEProgressMessage(BaseModel):
 
 class ModelBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
-    model_type: str = Field(..., regex="^(diffusion|upscaler|processor)$")
+    model_type: str = Field(..., pattern="^(diffusion|upscaler|processor)$")
     version: Optional[str] = Field(None, max_length=50)
     huggingface_id: Optional[str] = Field(None, max_length=200)
     local_path: Optional[str] = Field(None, max_length=500)
@@ -147,7 +147,7 @@ class ModelCreate(ModelBase):
 
 class ModelUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=200)
-    model_type: Optional[str] = Field(None, regex="^(diffusion|upscaler|processor)$")
+    model_type: Optional[str] = Field(None, pattern="^(diffusion|upscaler|processor)$")
     version: Optional[str] = Field(None, max_length=50)
     huggingface_id: Optional[str] = Field(None, max_length=200)
     local_path: Optional[str] = Field(None, max_length=500)
