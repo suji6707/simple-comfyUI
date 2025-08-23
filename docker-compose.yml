@@ -60,12 +60,14 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: /app/.venv/bin/celery -A app.workers.celery_worker worker --loglevel=info
+    command: celery -A app.workers.celery_worker worker --loglevel=info
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@host.docker.internal:5432/${POSTGRES_DB:-comfyui_service}
       REDIS_URL: redis://host.docker.internal:6379/0
       CELERY_BROKER_URL: redis://host.docker.internal:6379/1
       CELERY_RESULT_BACKEND: redis://host.docker.internal:6379/2
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
     volumes:
       - ./backend:/app
       - model_cache:/tmp/models
@@ -80,12 +82,14 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: /app/.venv/bin/celery -A app.workers.celery_worker beat --loglevel=info
+    command: celery -A app.workers.celery_worker beat --loglevel=info
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@host.docker.internal:5432/${POSTGRES_DB:-comfyui_service}
       REDIS_URL: redis://host.docker.internal:6379/0
       CELERY_BROKER_URL: redis://host.docker.internal:6379/1
       CELERY_RESULT_BACKEND: redis://host.docker.internal:6379/2
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
     volumes:
       - ./backend:/app
 
@@ -116,10 +120,14 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: /app/.venv/bin/celery -A app.workers.celery_worker flower --port=5555
+    command: celery -A app.workers.celery_worker flower --port=5555
     environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@host.docker.internal:5432/${POSTGRES_DB:-comfyui_service}
+      REDIS_URL: redis://host.docker.internal:6379/0
       CELERY_BROKER_URL: redis://host.docker.internal:6379/1
       CELERY_RESULT_BACKEND: redis://host.docker.internal:6379/2
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
     ports:
       - "5555:5555"
 
