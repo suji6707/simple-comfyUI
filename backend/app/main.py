@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -45,8 +44,13 @@ async def lifespan(app: FastAPI):
     
     # Initialize default templates
     from app.services.template_service import TemplateService
-    template_service = TemplateService()
-    await template_service.initialize_default_templates()
+    from app.models.database import SessionLocal
+    db = SessionLocal()
+    try:
+        template_service = TemplateService(db)
+        await template_service.initialize_default_templates()
+    finally:
+        db.close()
     logger.info("Default templates initialized")
     
     yield
