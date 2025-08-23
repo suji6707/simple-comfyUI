@@ -44,6 +44,8 @@ services:
       REDIS_URL: redis://host.docker.internal:6379/0
       CELERY_BROKER_URL: redis://host.docker.internal:6379/1
       CELERY_RESULT_BACKEND: redis://host.docker.internal:6379/2
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
     ports:
       - "8000:8000"
     volumes:
