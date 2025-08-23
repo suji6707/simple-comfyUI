@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  # postgres:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_USER:-user}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+  #     POSTGRES_DB: ${POSTGRES_DB:-comfyui_service}
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   profiles:
+  #     - "off"
+
+  # Redis
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@host.docker.internal:5432/${POSTGRES_DB:-comfyui_service}
+      REDIS_URL: redis://host.docker.internal:6379/0
+      CELERY_BROKER_URL: redis://host.docker.internal:6379/1
+      CELERY_RESULT_BACKEND: redis://host.docker.internal:6379/2
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - model_cache:/tmp/models
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+
+  # Celery Worker
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: /app/.venv/bin/celery -A app.workers.celery_worker worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@host.docker.internal:5432/${POSTGRES_DB:-comfyui_service}
+      REDIS_URL: redis://host.docker.internal:6379/0
+      CELERY_BROKER_URL: redis://host.docker.internal:6379/1
+      CELERY_RESULT_BACKEND: redis://host.docker.internal:6379/2
+    volumes:
+      - ./backend:/app
+      - model_cache:/tmp/models
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+
+  # Celery Beat (for scheduled tasks)
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: /app/.venv/bin/celery -A app.workers.celery_worker beat --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@host.docker.internal:5432/${POSTGRES_DB:-comfyui_service}
+      REDIS_URL: redis://host.docker.internal:6379/0
+      CELERY_BROKER_URL: redis://host.docker.internal:6379/1
+      CELERY_RESULT_BACKEND: redis://host.docker.internal:6379/2
+    volumes:
+      - ./backend:/app
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+
+  # Flower (Celery monitoring)
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: /app/.venv/bin/celery -A app.workers.celery_worker flower --port=5555
+    environment:
+      CELERY_BROKER_URL: redis://host.docker.internal:6379/1
+      CELERY_RESULT_BACKEND: redis://host.docker.internal:6379/2
+    ports:
+      - "5555:5555"
+
+  # MinIO (S3-compatible storage for development)
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  model_cache:
+  minio_data:
