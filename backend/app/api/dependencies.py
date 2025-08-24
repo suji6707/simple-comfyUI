@@ -12,7 +12,11 @@ logger = structlog.get_logger()
 security = HTTPBearer(auto_error=False)
 redis_client = redis.from_url(settings.REDIS_URL)
 
-
+'''
+FastAPI Depends:
+- 의존성을 선언하고 FastAPI가 자동으로 주입하도록 함
+- get_current_user가 인증된 유저 정보를 반환하면 current_user가 이 정보를 받음
+'''
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> str:

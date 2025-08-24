@@ -39,11 +39,12 @@ class Template(TemplateBase):
 
 class GenerationRequestBase(BaseModel):
     template_id: UUID
-    prompt: str = Field(..., min_length=1, max_length=2000)
+    prompt: str = Field(..., min_length=1, max_length=2000) # Field(...) 필수 필드임을 의미
     parameters: Dict[str, Any] = Field(default_factory=dict)
 
+    # parameters 필드 값 검증하는 커스텀 메서드 정의. parameters 필드에 값이 들어올 때마다 자동 실행
     @validator('parameters')
-    def validate_parameters(cls, v):
+    def validate_parameters(cls, v): # cls는 클래스 자체, v는 값
         # Add parameter validation logic here
         allowed_keys = {
             'width', 'height', 'num_images', 'steps', 'cfg_scale', 
@@ -54,14 +55,14 @@ class GenerationRequestBase(BaseModel):
                 raise ValueError(f'Parameter "{key}" is not allowed')
         
         # Validate specific parameter ranges
-        if 'num_images' in v and not 1 <= v['num_images'] <= 4:
+        if 'num_images' in v and not 1 <= v['num_images'] <= 4: # 생성할 이미지 수가 1~4가 아닌 경우 에러
             raise ValueError('num_images must be between 1 and 4')
         if 'steps' in v and not 1 <= v['steps'] <= 150:
             raise ValueError('steps must be between 1 and 150')
         if 'cfg_scale' in v and not 1.0 <= v['cfg_scale'] <= 20.0:
             raise ValueError('cfg_scale must be between 1.0 and 20.0')
         
-        return v
+        return v # 원래 값 반환
 
 
 class GenerationRequest(GenerationRequestBase):
@@ -87,12 +88,16 @@ class GenerationJobBase(BaseModel):
     user_id: str
     template_id: UUID
     prompt: str
-    parameters: Dict[str, Any] = Field(default_factory=dict)
+    parameters: Dict[str, Any] = Field(default_factory=dict) # 기본값 {}
     status: str = "queued"
     progress: int = 0
     queue_position: Optional[int] = None
 
-
+'''
+Pydantic 스키마 클래스
+- 직접 ORM 모델을 사용하지 않는 이유는 관심사 분리
+- 밖에서 입력 유효성 검사 등 가능
+'''
 class GenerationJobCreate(GenerationJobBase):
     pass
 

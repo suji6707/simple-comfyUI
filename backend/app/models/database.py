@@ -10,9 +10,15 @@ from sqlalchemy.orm import sessionmaker
 
 from ..core.config import settings
 
+# 데이터베이스 연결
 engine = create_engine(settings.DATABASE_URL)
+# Session 클래스 생성. 트랜잭션 등 작업단위 관리: 수동커밋 후 db.flush -> 트랜잭션 명시적으로 관리
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+'''
+모든 ORM 모델이 Base를 상속.
+테이블 메타데이터를 관리하고 매핑된 클래스를 데이터베이스 스키마에 연결하는 역할
+'''
 Base = declarative_base()
 
 
@@ -25,9 +31,9 @@ def get_db():
 
 
 class Template(Base):
-    __tablename__ = "templates"
+    __tablename__ = "templates" # 이 클래스가 매핑될 데이터베이스 테이블의 이름을 지정
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4) # default로 생성
     name = Column(String(100), nullable=False, index=True)
     description = Column(Text)
     category = Column(String(50), index=True)

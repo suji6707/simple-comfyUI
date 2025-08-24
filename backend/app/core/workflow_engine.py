@@ -118,6 +118,7 @@ class GenerationNode(WorkflowNode):
     """
     
     async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+        # 이전 노드에서 받은 입력
         prompt = self.inputs.get("enhanced_prompt", self.inputs.get("prompt", context.data.get("prompt")))
         negative_prompt = self.inputs.get("negative_prompt", self.parameters.get("negative_prompt", ""))
         

@@ -45,10 +45,12 @@ class GenerationService:
             status="queued"
         )
         
-        db_job = GenerationJobModel(**job_data.model_dump())
+        # DB에 작업 레코드 생성
+        # ** : 키워드 인자 언패킹. {a,b,c} => a,b,c
+        db_job = GenerationJobModel(**job_data.model_dump()) # model_dump: serialize Pydantic instance into Python dictionary
         self.db.add(db_job)
-        self.db.commit()
-        self.db.refresh(db_job)
+        self.db.commit() # flush 후 commit
+        self.db.refresh(db_job) # 자동으로 select, 업데이트된 객체 반환
         
         # Submit to Celery queue
         task = celery_app.send_task(
