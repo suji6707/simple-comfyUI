@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 import structlog
 
 from app.core.config import settings
@@ -86,6 +87,11 @@ if settings.BACKEND_CORS_ORIGINS:
 else:
     logger.warning("No CORS origins configured - CORS middleware not added")
 
+# Static file serving for generated images
+import os
+static_dir = "/tmp/generated_images"
+os.makedirs(static_dir, exist_ok=True)
+app.mount("/static/images", StaticFiles(directory=static_dir), name="static_images")
 
 # Global exception handler
 @app.exception_handler(Exception)
