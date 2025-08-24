@@ -145,8 +145,7 @@ class TemplateService:
                     ]
                 },
                 "example_images": [
-                    "https://example.com/portrait1.jpg",
-                    "https://example.com/portrait2.jpg"
+                    "https://www.telegraph.co.uk/multimedia/archive/02635/photorealistic_2635731k.jpg?imwidth=680"
                 ],
                 "parameters": {
                     "style_strength": {"type": "slider", "min": 0.1, "max": 1.0, "default": 0.7},
@@ -182,8 +181,7 @@ class TemplateService:
                     ]
                 },
                 "example_images": [
-                    "https://example.com/anime1.jpg",
-                    "https://example.com/anime2.jpg"
+                    "https://photo.coolenjoy.co.kr/data/editor/1610/thumb-Bimg_20161015030009_ptegolgm.jpg"
                 ],
                 "parameters": {
                     "art_style": {"type": "select", "options": ["shoujo", "shounen", "seinen", "chibi"], "default": "shoujo"},
@@ -218,8 +216,7 @@ class TemplateService:
                     ]
                 },
                 "example_images": [
-                    "https://example.com/oil1.jpg",
-                    "https://example.com/oil2.jpg"
+                    "https://afremov.com/media/catalog/product/image_675_1.jpeg"
                 ],
                 "parameters": {
                     "brush_style": {"type": "select", "options": ["smooth", "textured", "impasto"], "default": "textured"},
@@ -254,8 +251,7 @@ class TemplateService:
                     ]
                 },
                 "example_images": [
-                    "https://example.com/3d1.jpg",
-                    "https://example.com/3d2.jpg"
+                    "https://cdn.mos.cms.futurecdn.net/4365c5720b2f0aac43cc632b5694eda9-1200-80.jpg.webp"
                 ],
                 "parameters": {
                     "render_engine": {"type": "select", "options": ["cycles", "octane", "arnold", "vray"], "default": "cycles"},
@@ -291,8 +287,7 @@ class TemplateService:
                     ]
                 },
                 "example_images": [
-                    "https://example.com/sketch1.jpg",
-                    "https://example.com/sketch2.jpg"
+                    "https://images.squarespace-cdn.com/content/v1/57d5444be58c62ac0e2b4f95/1473599946759-0OR1TXLW0SSCXACKGRSS/TheAstronomer_Small.jpg"
                 ],
                 "parameters": {
                     "transformation_strength": {"type": "slider", "min": 0.1, "max": 1.0, "default": 0.8},
