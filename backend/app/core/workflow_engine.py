@@ -5,6 +5,9 @@ from uuid import UUID, uuid4
 from enum import Enum
 import structlog
 
+from app.core.model_manager import model_manager
+from app.core.storage_service import storage_service
+
 logger = structlog.get_logger()
 
 
@@ -129,28 +132,60 @@ class GenerationNode(WorkflowNode):
         cfg_scale = self.parameters.get("cfg_scale", 7.5)
         scheduler = self.parameters.get("scheduler", "DPMSolverMultistep")
         model = self.parameters.get("model", "stabilityai/stable-diffusion-xl-base-1.0")
+        num_images = self.parameters.get("num_images", 1)
+        seed = self.parameters.get("seed")
         
-        # TODO: Implement actual model inference
-        # For now, return mock data
-        return {
-            "generated_images": [
-                {
-                    "image_data": f"mock_image_data_{uuid4()}",
-                    "seed": 12345,
-                    "model_used": model,
-                    "generation_time": 30.5
-                }
-            ],
-            "generation_metadata": {
-                "prompt": prompt,
-                "negative_prompt": negative_prompt,
-                "width": width,
-                "height": height,
-                "steps": steps,
-                "cfg_scale": cfg_scale,
-                "scheduler": scheduler
-            }
-        }
+        # Get additional parameters from context
+        user_params = context.data.get("parameters", {})
+        num_images = user_params.get("num_images", num_images)
+        if "seed" in user_params:
+            seed = user_params["seed"]
+        
+        logger.info(
+            "Starting AI image generation",
+            job_id=context.job_id,
+            model=model,
+            prompt=prompt[:100] + "..." if len(prompt) > 100 else prompt,
+            size=f"{width}x{height}",
+            steps=steps,
+            cfg_scale=cfg_scale,
+            num_images=num_images
+        )
+        
+        try:
+            # Use model manager for actual inference
+            result = await model_manager.generate_image(
+                model_name=model,
+                prompt=prompt,
+                negative_prompt=negative_prompt,
+                width=width,
+                height=height,
+                num_inference_steps=steps,
+                guidance_scale=cfg_scale,
+                num_images_per_prompt=num_images,
+                scheduler_name=scheduler,
+                seed=seed
+            )
+            
+            logger.info(
+                "AI image generation completed",
+                job_id=context.job_id,
+                model=model,
+                images_generated=len(result["generated_images"]),
+                generation_time=result["generation_metadata"]["generation_time"]
+            )
+            
+            return result
+            
+        except Exception as e:
+            logger.error(
+                "AI image generation failed",
+                job_id=context.job_id,
+                model=model,
+                error=str(e),
+                exc_info=e
+            )
+            raise RuntimeError(f"Image generation failed: {str(e)}")
 
 
 class ImageInputNode(WorkflowNode):
