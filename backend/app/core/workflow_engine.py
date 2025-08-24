@@ -253,17 +253,67 @@ class SaveImageNode(WorkflowNode):
         if not images:
             raise ValueError("No images to save")
         
-        # TODO: Implement actual image saving to S3
+        logger.info(
+            "Starting image save process",
+            job_id=context.job_id,
+            image_count=len(images)
+        )
+        
         saved_images = []
-        for i, image in enumerate(images):
-            image_url = f"https://example.com/images/{context.job_id}_{i}.jpg"
-            thumbnail_url = f"https://example.com/thumbnails/{context.job_id}_{i}.jpg"
-            
-            saved_images.append({
-                "image_url": image_url,
-                "thumbnail_url": thumbnail_url,
-                "metadata": image.get("generation_metadata", {})
-            })
+        for i, image_data in enumerate(images):
+            try:
+                # Get PIL image from the generated result
+                pil_image = image_data.get("pil_image")
+                if not pil_image:
+                    logger.error(f"No PIL image found for index {i}")
+                    continue
+                
+                # Save image and thumbnail using storage service
+                save_result = await storage_service.save_image(
+                    image=pil_image,
+                    job_id=context.job_id,
+                    index=i
+                )
+                
+                saved_images.append({
+                    "image_url": save_result["image_url"],
+                    "thumbnail_url": save_result["thumbnail_url"],
+                    "filename": save_result["filename"],
+                    "metadata": {
+                        "seed": image_data.get("seed"),
+                        "model_used": image_data.get("model_used"),
+                        "generation_time": image_data.get("generation_time"),
+                        "index": i
+                    }
+                })
+                
+                logger.info(
+                    "Image saved successfully",
+                    job_id=context.job_id,
+                    index=i,
+                    filename=save_result["filename"]
+                )
+                
+            except Exception as e:
+                logger.error(
+                    "Failed to save image",
+                    job_id=context.job_id,
+                    index=i,
+                    error=str(e),
+                    exc_info=e
+                )
+                # Continue with other images even if one fails
+                continue
+        
+        if not saved_images:
+            raise RuntimeError("Failed to save any images")
+        
+        logger.info(
+            "Image save process completed",
+            job_id=context.job_id,
+            saved_count=len(saved_images),
+            total_count=len(images)
+        )
         
         return {
             "saved_images": saved_images,
