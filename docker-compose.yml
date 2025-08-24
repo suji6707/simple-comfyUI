@@ -46,18 +46,20 @@ services:
       CELERY_RESULT_BACKEND: redis://host.docker.internal:6379/2
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
+      STATIC_FILES_URL: ${STATIC_FILES_URL:-http://localhost:8000/static/images}
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
       - model_cache:/tmp/models
+      - generated_images:/tmp/generated_images
     develop:
       watch:
         - action: sync
           path: ./backend
           target: /app
 
-  # Celery Worker
+  # Celery Worker (with GPU support)
   celery-worker:
     build:
       context: ./backend
@@ -70,9 +72,20 @@ services:
       CELERY_RESULT_BACKEND: redis://host.docker.internal:6379/2
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
+      STATIC_FILES_URL: ${STATIC_FILES_URL:-http://localhost:8000/static/images}
+      MODEL_CACHE_DIR: /tmp/models
+      CUDA_VISIBLE_DEVICES: all
     volumes:
       - ./backend:/app
       - model_cache:/tmp/models
+      - generated_images:/tmp/generated_images
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     develop:
       watch:
         - action: sync
@@ -150,4 +163,5 @@ volumes:
   postgres_data:
   redis_data:
   model_cache:
+  generated_images:
   minio_data:
