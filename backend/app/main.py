@@ -74,13 +74,17 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 # CORS middleware
 if settings.BACKEND_CORS_ORIGINS:
+    cors_origins = [str(origin).rstrip('/') for origin in settings.BACKEND_CORS_ORIGINS]
+    logger.info(f"Adding CORS middleware with origins: {cors_origins}")
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_origins=cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+else:
+    logger.warning("No CORS origins configured - CORS middleware not added")
 
 
 # Global exception handler
