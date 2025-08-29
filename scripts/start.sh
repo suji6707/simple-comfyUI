@@ -25,20 +25,20 @@ mkdir -p backend/models backend/uploads frontend/public/generated
 
 # Build and start services
 echo "🔨 Building and starting services..."
-docker-compose up --build -d
+docker compose up --build -d
 
 # Wait for services to be ready
 echo "⏳ Waiting for services to be ready..."
 
 # Wait for PostgreSQL
 # echo "  - Waiting for PostgreSQL..."
-# until docker-compose exec postgres pg_isready -U user; do
+# until docker compose exec postgres pg_isready -U user; do
 #     sleep 1
 # done
 
 # Wait for Redis
 # echo "  - Waiting for Redis..."
-# until docker-compose exec redis redis-cli ping; do
+# until docker compose exec redis redis-cli ping; do
 #     sleep 1
 # done
 
@@ -64,9 +64,9 @@ echo "🌸 Flower UI:    http://localhost:5555"
 echo "📊 MinIO:        http://localhost:9001"
 echo ""
 echo "📋 Useful commands:"
-echo "  docker-compose logs -f          # View logs"
-echo "  docker-compose logs -f backend  # View backend logs only"
-echo "  docker-compose ps               # View running services"
-echo "  docker-compose down             # Stop all services"
+echo "  docker compose logs -f          # View logs"
+echo "  docker compose logs -f backend  # View backend logs only"
+echo "  docker compose ps               # View running services"
+echo "  docker compose down             # Stop all services"
 echo "  ./scripts/stop.sh               # Stop and cleanup"
 echo ""

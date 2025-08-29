@@ -114,3 +114,5 @@ __pypackages__/
 .mypy_cache/
 .dmypy.json
 dmypi.json
+
+memo.md

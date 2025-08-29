@@ -79,13 +79,7 @@ services:
       - ./backend:/app
       - model_cache:/tmp/models
       - generated_images:/tmp/generated_images
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    runtime: nvidia
     develop:
       watch:
         - action: sync
