@@ -9,14 +9,22 @@ export interface Template {
 
 export interface GenerationJob {
   id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'processing' | 'queued';
   progress: number;
   prompt: string;
   parameters: Record<string, any>;
   result?: string[];
+  results?: Array<{
+    id: string;
+    image_url: string;
+    thumbnail_url?: string;
+  }>;
   error?: string;
+  error_details?: string;
   created_at: string;
   updated_at: string;
+  template?: Template;
+  queue_position?: number;
 }
 
 export interface GenerationParameters {
@@ -33,7 +41,10 @@ class ApiClient {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    // Client-side environment variable access for Next.js
+    this.baseUrl = (typeof window !== 'undefined' 
+      ? (window as any).__NEXT_DATA__?.runtimeConfig?.NEXT_PUBLIC_API_URL 
+      : (global as any).process?.env?.NEXT_PUBLIC_API_URL) || 'http://localhost:8000';
   }
 
   async fetchTemplates(): Promise<Template[]> {

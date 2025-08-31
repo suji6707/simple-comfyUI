@@ -21,7 +21,7 @@ interface GenerationState {
   clearError: () => void;
 }
 
-export const useGenerationStore = create<GenerationState>((set, get) => ({
+export const useGenerationStore = create<GenerationState>((set: any, get: any) => ({
   // Initial state
   templates: [],
   selectedTemplate: null,
@@ -96,7 +96,7 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
     try {
       const job = await apiClient.getJob(jobId);
       const { jobs } = get();
-      const updatedJobs = jobs.map(j => j.id === jobId ? job : j);
+      const updatedJobs = jobs.map((j: GenerationJob) => j.id === jobId ? job : j);
       set({ jobs: updatedJobs });
       
       if (get().currentJob?.id === jobId) {

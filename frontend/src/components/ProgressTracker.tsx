@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useGenerationStore } from '@/lib/stores/generation-store';
 import { GenerationJob } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
@@ -15,14 +15,14 @@ interface ProgressTrackerProps {
 }
 
 export function ProgressTracker({ className }: ProgressTrackerProps) {
-  const { currentJobs, fetchJobHistory } = useGenerationStore();
+  const { jobs, fetchJobs } = useGenerationStore();
 
   useEffect(() => {
     // Fetch initial job history
-    fetchJobHistory();
-  }, [fetchJobHistory]);
+    fetchJobs();
+  }, [fetchJobs]);
 
-  if (currentJobs.length === 0) {
+  if (!jobs || jobs.length === 0) {
     return (
       <Card className={cn('w-full', className)}>
         <CardContent className="flex items-center justify-center py-8">
@@ -43,8 +43,8 @@ export function ProgressTracker({ className }: ProgressTrackerProps) {
         <CardDescription>Track your ongoing image generations</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {currentJobs.map((job) => (
-          <JobProgressCard key={job.job_id} job={job} />
+        {jobs.map((job) => (
+          <JobProgressCard key={job.id} job={job} />
         ))}
       </CardContent>
     </Card>
@@ -106,11 +106,6 @@ function JobProgressCard({ job }: JobProgressCardProps) {
             <Badge variant="secondary" className={cn('text-xs', getStatusColor(job.status))}>
               {job.status.toUpperCase()}
             </Badge>
-            {job.queue_position && job.queue_position > 0 && (
-              <Badge variant="outline" className="text-xs">
-                #{job.queue_position} in queue
-              </Badge>
-            )}
           </div>
           <p className="text-sm font-medium truncate mb-1">{job.prompt}</p>
           <p className="text-xs text-gray-500">
