@@ -44,12 +44,12 @@ class ApiClient {
     // Client-side environment variable access for Next.js
     this.baseUrl = (typeof window !== 'undefined' 
       ? (window as any).__NEXT_DATA__?.runtimeConfig?.NEXT_PUBLIC_API_URL 
-      : (global as any).process?.env?.NEXT_PUBLIC_API_URL) || 'http://localhost:8000';
+      : process.env.NEXT_PUBLIC_API_URL) || 'http://localhost:8000';
   }
 
   async fetchTemplates(): Promise<Template[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/templates`);
+      const response = await fetch(`${this.baseUrl}/api/v1/templates`);
       if (!response.ok) {
         throw new Error(`Failed to fetch templates: ${response.statusText}`);
       }
@@ -60,16 +60,17 @@ class ApiClient {
     }
   }
 
-  async submitGeneration(prompt: string, parameters: GenerationParameters): Promise<string> {
+  async submitGeneration(prompt: string, templateId: string, parameters: GenerationParameters): Promise<string> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/generate`, {
+      const response = await fetch(`${this.baseUrl}/api/v1/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          template_id: templateId,
           prompt,
-          ...parameters,
+          parameters,
         }),
       });
 
@@ -87,7 +88,7 @@ class ApiClient {
 
   async getJob(jobId: string): Promise<GenerationJob> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/jobs/${jobId}`);
+      const response = await fetch(`${this.baseUrl}/api/v1/generate/${jobId}/status`);
       if (!response.ok) {
         throw new Error(`Failed to fetch job: ${response.statusText}`);
       }
@@ -100,7 +101,7 @@ class ApiClient {
 
   async getJobs(): Promise<GenerationJob[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/jobs`);
+      const response = await fetch(`${this.baseUrl}/api/v1/history`);
       if (!response.ok) {
         throw new Error(`Failed to fetch jobs: ${response.statusText}`);
       }

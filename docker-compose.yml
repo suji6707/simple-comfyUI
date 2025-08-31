@@ -1,25 +1,4 @@
 services:
-  # PostgreSQL Database
-  # postgres:
-  #   image: postgres:15
-  #   environment:
-  #     POSTGRES_USER: ${POSTGRES_USER:-user}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-  #     POSTGRES_DB: ${POSTGRES_DB:-comfyui_service}
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #     - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user}"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   profiles:
-  #     - "off"
-
-
   # Backend API
   backend:
     build:
@@ -49,7 +28,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A app.workers.celery_worker worker --loglevel=info
+    command: celery -A app.workers.celery_worker worker --loglevel=info --queues=celery,generation,upscaling,batch,maintenance,health,models
     network_mode: host
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@localhost:5432/${POSTGRES_DB:-comfyui_service}

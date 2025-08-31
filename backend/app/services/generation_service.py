@@ -113,7 +113,11 @@ class GenerationService:
         if not db_job:
             return None
         
-        update_fields = update_data.model_dump(exclude_unset=True)
+        # Handle both Pydantic model and dict input
+        if hasattr(update_data, 'model_dump'):
+            update_fields = update_data.model_dump(exclude_unset=True)
+        else:
+            update_fields = update_data
         for field, value in update_fields.items():
             setattr(db_job, field, value)
         

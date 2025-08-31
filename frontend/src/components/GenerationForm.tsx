@@ -102,7 +102,7 @@ export function GenerationForm({ template, className }: GenerationFormProps) {
         ...(formData.seed && { seed: formData.seed }),
       };
 
-      const jobId = await submitGeneration(formData.prompt, parameters);
+      const jobId = await submitGeneration(formData.prompt, template.id, parameters);
       
       if (jobId) {
         toast({

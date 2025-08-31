@@ -15,7 +15,7 @@ interface GenerationState {
   // Actions
   fetchTemplates: () => Promise<void>;
   selectTemplate: (template: Template) => void;
-  submitGeneration: (prompt: string, parameters: GenerationParameters) => Promise<string | null>;
+  submitGeneration: (prompt: string, templateId: string, parameters: GenerationParameters) => Promise<string | null>;
   fetchJobs: () => Promise<void>;
   fetchJobStatus: (jobId: string) => Promise<void>;
   clearError: () => void;
@@ -48,10 +48,10 @@ export const useGenerationStore = create<GenerationState>((set: any, get: any) =
     set({ selectedTemplate: template });
   },
 
-  submitGeneration: async (prompt: string, parameters: GenerationParameters) => {
+  submitGeneration: async (prompt: string, templateId: string, parameters: GenerationParameters) => {
     try {
       set({ isLoading: true, error: null });
-      const jobId = await apiClient.submitGeneration(prompt, parameters);
+      const jobId = await apiClient.submitGeneration(prompt, templateId, parameters);
       
       // Start polling for job status
       const pollJob = async () => {
