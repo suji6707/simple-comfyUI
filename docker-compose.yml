@@ -19,18 +19,6 @@ services:
   #   profiles:
   #     - "off"
 
-  # Redis
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6380:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # Backend API
   backend:
@@ -40,9 +28,9 @@ services:
     network_mode: host
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@localhost:5432/${POSTGRES_DB:-comfyui_service}
-      REDIS_URL: redis://localhost:6380/0
-      CELERY_BROKER_URL: redis://localhost:6380/1
-      CELERY_RESULT_BACKEND: redis://localhost:6380/2
+      REDIS_URL: redis://localhost:6379/0
+      CELERY_BROKER_URL: redis://localhost:6379/1
+      CELERY_RESULT_BACKEND: redis://localhost:6379/2
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
       STATIC_FILES_URL: ${STATIC_FILES_URL:-http://localhost:8000/static/images}
@@ -62,11 +50,12 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     command: celery -A app.workers.celery_worker worker --loglevel=info
+    network_mode: host
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@localhost:5432/${POSTGRES_DB:-comfyui_service}
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/1
-      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      REDIS_URL: redis://localhost:6379/0
+      CELERY_BROKER_URL: redis://localhost:6379/1
+      CELERY_RESULT_BACKEND: redis://localhost:6379/2
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
       STATIC_FILES_URL: ${STATIC_FILES_URL:-http://localhost:8000/static/images}
@@ -89,11 +78,12 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     command: celery -A app.workers.celery_worker beat --loglevel=info
+    network_mode: host
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@localhost:5432/${POSTGRES_DB:-comfyui_service}
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/1
-      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      REDIS_URL: redis://localhost:6379/0
+      CELERY_BROKER_URL: redis://localhost:6379/1
+      CELERY_RESULT_BACKEND: redis://localhost:6379/2
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
     volumes:
@@ -127,16 +117,15 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     command: celery -A app.workers.celery_worker flower --port=5555
+    network_mode: host
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@localhost:5432/${POSTGRES_DB:-comfyui_service}
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/1
-      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      REDIS_URL: redis://localhost:6379/0
+      CELERY_BROKER_URL: redis://localhost:6379/1
+      CELERY_RESULT_BACKEND: redis://localhost:6379/2
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
-      FLOWER_BROKER_API: redis://host.docker.internal:6379/1
-    ports:
-      - "5555:5555"
+      FLOWER_BROKER_API: redis://localhost:6379/1
     depends_on:
       - backend
 
@@ -154,8 +143,6 @@ services:
       - minio_data:/data
 
 volumes:
-  postgres_data:
-  redis_data:
   model_cache:
   generated_images:
   minio_data:
