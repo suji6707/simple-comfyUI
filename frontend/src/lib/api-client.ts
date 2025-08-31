@@ -9,7 +9,7 @@ export interface Template {
 
 export interface GenerationJob {
   id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'processing' | 'queued';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'processing' | 'queued' | 'cancelled';
   progress: number;
   prompt: string;
   parameters: Record<string, any>;
@@ -108,6 +108,24 @@ class ApiClient {
       return await response.json();
     } catch (error) {
       console.error('Error fetching jobs:', error);
+      throw error;
+    }
+  }
+
+  async cancelJob(jobId: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/generate/${jobId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to cancel job: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error cancelling job:', error);
       throw error;
     }
   }

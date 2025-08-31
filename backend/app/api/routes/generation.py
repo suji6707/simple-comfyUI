@@ -176,7 +176,7 @@ async def stream_job_progress(
 async def get_generation_history(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    status: Optional[str] = Query(None, regex="^(queued|processing|completed|failed)$"),
+    status: Optional[str] = Query(None, regex="^(queued|processing|completed|failed|cancelled)$"),
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user),
 ):

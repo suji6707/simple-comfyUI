@@ -72,7 +72,8 @@ class GenerationService:
             celery_task_id=task.id
         )
         
-        # Update queue position
+        # Store Celery task ID and update queue position
+        db_job.celery_task_id = task.id
         queue_position = await self._calculate_queue_position(db_job.job_id)
         db_job.queue_position = queue_position
         self.db.commit()
@@ -204,11 +205,16 @@ class GenerationService:
         if not db_job:
             return False
         
-        # TODO: Cancel Celery task
-        # from app.core.config import celery_app
-        # celery_app.control.revoke(task_id, terminate=True)
+        # Cancel Celery task if we have the task ID
+        if db_job.celery_task_id:
+            from app.core.config import celery_app
+            try:
+                celery_app.control.revoke(db_job.celery_task_id, terminate=True)
+                logger.info("Celery task revoked", task_id=db_job.celery_task_id, job_id=str(job_id))
+            except Exception as e:
+                logger.warning("Failed to revoke Celery task", task_id=db_job.celery_task_id, error=str(e))
         
-        db_job.status = "failed"
+        db_job.status = "cancelled"
         db_job.error_details = "Cancelled by user"
         db_job.completed_at = datetime.utcnow()
         

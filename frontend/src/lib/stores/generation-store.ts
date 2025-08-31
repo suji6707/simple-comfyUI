@@ -18,6 +18,7 @@ interface GenerationState {
   submitGeneration: (prompt: string, templateId: string, parameters: GenerationParameters) => Promise<string | null>;
   fetchJobs: () => Promise<void>;
   fetchJobStatus: (jobId: string) => Promise<void>;
+  cancelJob: (jobId: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -104,6 +105,28 @@ export const useGenerationStore = create<GenerationState>((set: any, get: any) =
       }
     } catch (error) {
       console.error('Error fetching job status:', error);
+    }
+  },
+
+  cancelJob: async (jobId: string) => {
+    try {
+      await apiClient.cancelJob(jobId);
+      
+      // Update jobs list after cancellation
+      const { jobs } = get();
+      const updatedJobs = jobs.map((job: GenerationJob) => 
+        job.id === jobId ? { ...job, status: 'cancelled' as const } : job
+      );
+      set({ jobs: updatedJobs });
+      
+      // Update current job if it's the one being cancelled
+      const { currentJob } = get();
+      if (currentJob && currentJob.id === jobId) {
+        set({ currentJob: { ...currentJob, status: 'cancelled' } });
+      }
+    } catch (error) {
+      console.error('Error cancelling job:', error);
+      throw error;
     }
   },
 

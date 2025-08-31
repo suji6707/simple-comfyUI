@@ -59,6 +59,7 @@ class GenerationJob(Base):
     status = Column(String(20), default="queued", index=True)
     progress = Column(Integer, default=0)
     queue_position = Column(Integer)
+    celery_task_id = Column(String(100), index=True)
     started_at = Column(DateTime)
     completed_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)

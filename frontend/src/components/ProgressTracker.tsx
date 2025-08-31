@@ -8,18 +8,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
-import { Clock, CheckCircle, XCircle, AlertCircle, Download, Eye } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, AlertCircle, Download, Eye, X } from 'lucide-react';
 
 interface ProgressTrackerProps {
   className?: string;
 }
 
 export function ProgressTracker({ className }: ProgressTrackerProps) {
-  const { jobs, fetchJobs } = useGenerationStore();
+  const { jobs, fetchJobs, cancelJob } = useGenerationStore();
 
   useEffect(() => {
     // Fetch initial job history
-    fetchJobs();
+    if (fetchJobs) {
+      fetchJobs();
+    }
   }, [fetchJobs]);
 
   if (!jobs || jobs.length === 0) {
@@ -44,7 +46,7 @@ export function ProgressTracker({ className }: ProgressTrackerProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {jobs.map((job) => (
-          <JobProgressCard key={job.id} job={job} />
+          <JobProgressCard key={job.id} job={job} onCancel={cancelJob} />
         ))}
       </CardContent>
     </Card>
@@ -53,15 +55,18 @@ export function ProgressTracker({ className }: ProgressTrackerProps) {
 
 interface JobProgressCardProps {
   job: GenerationJob;
+  onCancel: (jobId: string) => Promise<void>;
 }
 
-function JobProgressCard({ job }: JobProgressCardProps) {
+function JobProgressCard({ job, onCancel }: JobProgressCardProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'failed':
         return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'cancelled':
+        return <XCircle className="h-4 w-4 text-orange-500" />;
       case 'processing':
         return <AlertCircle className="h-4 w-4 text-blue-500" />;
       default:
@@ -75,10 +80,21 @@ function JobProgressCard({ job }: JobProgressCardProps) {
         return 'bg-green-500';
       case 'failed':
         return 'bg-red-500';
+      case 'cancelled':
+        return 'bg-orange-500';
       case 'processing':
         return 'bg-blue-500';
       default:
         return 'bg-gray-400';
+    }
+  };
+
+  const handleCancel = async () => {
+    try {
+      await onCancel(job.id);
+    } catch (error) {
+      console.error('Failed to cancel job:', error);
+      // You could add a toast notification here
     }
   };
 
@@ -113,6 +129,17 @@ function JobProgressCard({ job }: JobProgressCardProps) {
             {job.template && ` • ${job.template.name}`}
           </p>
         </div>
+        {/* Cancel button for queued/processing jobs */}
+        {(job.status === 'queued' || job.status === 'processing') && (
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={handleCancel}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Progress Bar */}
@@ -169,7 +196,7 @@ function JobProgressCard({ job }: JobProgressCardProps) {
             ))}
           </div>
         </div>
-      ) : job.status === 'failed' && (
+      ) : job.status === 'failed' ? (
         <div className="space-y-2">
           <div className="text-sm text-red-600 font-medium">Generation Failed</div>
           {job.error_details && (
@@ -180,6 +207,13 @@ function JobProgressCard({ job }: JobProgressCardProps) {
           <Button size="sm" variant="outline" className="text-red-600 border-red-200">
             Retry
           </Button>
+        </div>
+      ) : job.status === 'cancelled' && (
+        <div className="space-y-2">
+          <div className="text-sm text-orange-600 font-medium">Generation Cancelled</div>
+          <p className="text-xs text-gray-600 bg-orange-50 p-2 rounded border">
+            This generation was cancelled by the user.
+          </p>
         </div>
       )}
     </div>

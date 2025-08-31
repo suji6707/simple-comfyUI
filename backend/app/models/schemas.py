@@ -92,6 +92,7 @@ class GenerationJobBase(BaseModel):
     status: str = "queued"
     progress: int = 0
     queue_position: Optional[int] = None
+    celery_task_id: Optional[str] = None
 
 '''
 Pydantic 스키마 클래스
